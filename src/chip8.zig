@@ -58,7 +58,7 @@ pub fn execute(op: u16) void {
             for (0..WIDTH * HEIGHT) |i| {
                 frame[i] = 0;
             }
-            draw();
+            draw(); // so this move out of
         },
         //return
         0x00ee => {
@@ -129,7 +129,36 @@ pub fn execute(op: u16) void {
                     v[0xf] = v[x] & 0xa0;
                     v[x] <<= 1;
                 },
-                else => {},
+                0x9000 => {
+                    if (v[x] != v[y]) PC += 2;
+                },
+                else => switch (op & 0xf0ff) {
+                    0xe09e => {},
+                    0xe0a1 => {},
+                    0xf007 => v[x] = DT,
+                    0xf00a => {},
+                    0xf015 => DT = v[x],
+                    0xf018 => ST = v[x],
+                    0xf01e => I += v[x],
+                    0xf029 => {},
+                    0xf033 => {
+                        memory[I] = v[x] / 100;
+                        var t = v[x] % 100;
+                        memory[I + 1] = t / 10;
+                        memory[I + 2] = t % 10;
+                    },
+                    0xf055 => {
+                        for (0..x) |j| {
+                            memory[I + j] = v[j];
+                        }
+                    },
+                    0xf065 => {
+                        for (0..x) |j| {
+                            v[j] = memory[I + j];
+                        }
+                    },
+                    else => unreachable,
+                },
             },
         },
     }
