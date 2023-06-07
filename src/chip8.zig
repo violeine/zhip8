@@ -8,7 +8,7 @@ var ST: u8 = 0;
 var PC: u16 = 0x200;
 var SP: u8 = 0;
 var stack: [16]u16 = undefined;
-var frame = [_]u2{0} ** WIDTH ** HEIGHT;
+pub var frame = [_]u2{0} ** WIDTH ** HEIGHT;
 const WIDTH = 64;
 const HEIGHT = 32;
 

@@ -14,7 +14,6 @@ pub fn build(b: *std.Build) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
-
     const exe = b.addExecutable(.{
         .name = "zhip8",
         // In this case the main source file is merely a path, however, in more
@@ -23,6 +22,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    exe.linkSystemLibrary("sdl2");
+    exe.linkSystemLibrary("c");
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
