@@ -7,7 +7,7 @@ var DT: u8 = 0;
 var ST: u8 = 0;
 var PC: u16 = 0x200;
 var SP: u8 = 0;
-var stack: [16]u16 = undefined;
+var stack = [_]u16{0} ** 16;
 pub var frame = [_]u2{0} ** WIDTH ** HEIGHT;
 const WIDTH = 64;
 const HEIGHT = 32;
@@ -58,12 +58,11 @@ pub fn execute(op: u16) void {
             for (0..WIDTH * HEIGHT) |i| {
                 frame[i] = 0;
             }
-            draw(); // so this move out of
         },
         //return
         0x00ee => {
-            PC = stack[SP];
             SP -= 1;
+            PC = stack[SP];
         },
         else => switch ((op & 0xf000) >> 4 * 3) {
             0x1 => PC = nnn, //1nnn
@@ -98,7 +97,6 @@ pub fn execute(op: u16) void {
                         frame[pos] = t;
                     }
                 }
-                draw();
             },
             else => switch (op & 0xf00f) {
                 0x5000 => {
@@ -111,11 +109,12 @@ pub fn execute(op: u16) void {
                 0x8002 => v[x] &= v[y],
                 0x8003 => v[x] ^= v[y],
                 0x8004 => {
-                    v[0xf] = if (v[x] + v[y] > 255) 1 else 0;
+                    v[0xf] = if (v[x] +% v[y] > 255) 1 else 0;
                     v[x] +%= v[y];
                 },
                 0x8005 => {
                     v[0xf] = if (v[x] > v[y]) 1 else 0;
+                    v[x] -%= v[y];
                 },
                 0x8006 => {
                     v[0xf] = v[x] & 0x01;
@@ -123,7 +122,7 @@ pub fn execute(op: u16) void {
                 },
                 0x8007 => {
                     v[0xf] = if (v[y] > v[x]) 1 else 0;
-                    v[x] = v[y] - v[x];
+                    v[x] = v[y] -% v[x];
                 },
                 0x800e => {
                     v[0xf] = v[x] & 0xa0;
@@ -148,16 +147,16 @@ pub fn execute(op: u16) void {
                         memory[I + 2] = t % 10;
                     },
                     0xf055 => {
-                        for (0..x) |j| {
+                        for (0..(x + 1)) |j| {
                             memory[I + j] = v[j];
                         }
                     },
                     0xf065 => {
-                        for (0..x) |j| {
+                        for (0..(x + 1)) |j| {
                             v[j] = memory[I + j];
                         }
                     },
-                    else => unreachable,
+                    else => {},
                 },
             },
         },
