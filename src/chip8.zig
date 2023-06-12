@@ -3,12 +3,13 @@ const std = @import("std");
 var memory = [_]u8{0} ** 4096;
 var v = [_]u8{0} ** 16;
 var I: u16 = 0;
-var DT: u8 = 0;
-var ST: u8 = 0;
+pub var DT: u8 = 0;
+pub var ST: u8 = 0;
 var PC: u16 = 0x200;
 var SP: u8 = 0;
 var stack = [_]u16{0} ** 16;
-pub var frame = [_]u2{0} ** WIDTH ** HEIGHT;
+pub var frame = [_]u1{0} ** WIDTH ** HEIGHT;
+pub var keys = [_]u1{0} ** 16;
 const WIDTH = 64;
 const HEIGHT = 32;
 
@@ -137,8 +138,12 @@ pub fn execute(op: u16) void {
                     if (v[x] != v[y]) PC += 2;
                 },
                 else => switch (op & 0xf0ff) {
-                    0xe09e => {},
-                    0xe0a1 => {},
+                    0xe09e => {
+                        if (keys[v[x]] == 1) PC += 2;
+                    },
+                    0xe0a1 => {
+                        if (keys[v[x]] != 1) PC += 2;
+                    },
                     0xf007 => v[x] = DT,
                     0xf00a => {},
                     0xf015 => DT = v[x],

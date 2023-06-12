@@ -23,15 +23,57 @@ fn draw(renderer: *c.SDL_Renderer) void {
             _ = c.SDL_RenderFillRect(renderer, &p);
         }
     }
-    _ = c.SDL_RenderPresent(renderer);
 }
 
 fn input() void {
     var e: c.SDL_Event = undefined;
-    _ = c.SDL_PollEvent(&e);
-    switch (e.type) {
-        c.SDL_QUIT => quit = true,
-        else => {},
+    while (c.SDL_PollEvent(&e) != 0) {
+        switch (e.type) {
+            c.SDL_QUIT => quit = true,
+            c.SDL_KEYDOWN => {
+                switch (e.key.keysym.sym) {
+                    c.SDLK_1 => chip8.keys[0x1] = 1,
+                    c.SDLK_2 => chip8.keys[0x2] = 1,
+                    c.SDLK_3 => chip8.keys[0x3] = 1,
+                    c.SDLK_4 => chip8.keys[0xc] = 1,
+                    c.SDLK_q => chip8.keys[0x4] = 1,
+                    c.SDLK_w => chip8.keys[0x5] = 1,
+                    c.SDLK_e => chip8.keys[0x6] = 1,
+                    c.SDLK_r => chip8.keys[0xd] = 1,
+                    c.SDLK_a => chip8.keys[0x7] = 1,
+                    c.SDLK_s => chip8.keys[0x8] = 1,
+                    c.SDLK_d => chip8.keys[0x9] = 1,
+                    c.SDLK_f => chip8.keys[0xe] = 1,
+                    c.SDLK_z => chip8.keys[0xa] = 1,
+                    c.SDLK_x => chip8.keys[0x0] = 1,
+                    c.SDLK_c => chip8.keys[0xb] = 1,
+                    c.SDLK_v => chip8.keys[0xf] = 1,
+                    else => {},
+                }
+            },
+            c.SDL_KEYUP => {
+                switch (e.key.keysym.sym) {
+                    c.SDLK_1 => chip8.keys[0x1] = 0,
+                    c.SDLK_2 => chip8.keys[0x2] = 0,
+                    c.SDLK_3 => chip8.keys[0x3] = 0,
+                    c.SDLK_4 => chip8.keys[0xc] = 0,
+                    c.SDLK_q => chip8.keys[0x4] = 0,
+                    c.SDLK_w => chip8.keys[0x5] = 0,
+                    c.SDLK_e => chip8.keys[0x6] = 0,
+                    c.SDLK_r => chip8.keys[0xd] = 0,
+                    c.SDLK_a => chip8.keys[0x7] = 0,
+                    c.SDLK_s => chip8.keys[0x8] = 0,
+                    c.SDLK_d => chip8.keys[0x9] = 0,
+                    c.SDLK_f => chip8.keys[0xe] = 0,
+                    c.SDLK_z => chip8.keys[0xa] = 0,
+                    c.SDLK_x => chip8.keys[0x0] = 0,
+                    c.SDLK_c => chip8.keys[0xb] = 0,
+                    c.SDLK_v => chip8.keys[0xf] = 0,
+                    else => {},
+                }
+            },
+            else => {},
+        }
     }
 }
 
@@ -43,25 +85,34 @@ pub fn main() !void {
     }
     defer c.SDL_Quit();
 
-    const screen = c.SDL_CreateWindow("zhip8", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, 64 * pixel.w, 32 * pixel.h, c.SDL_WINDOW_OPENGL) orelse {
+    const screen = c.SDL_CreateWindow("zhip8", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, 64 * pixel.w, 32 * pixel.h, c.SDL_WINDOW_METAL) orelse {
         c.SDL_Log("Unable to init SDL window: %s", c.SDL_GetError());
         return error.SDLInitFailed;
     };
     defer c.SDL_DestroyWindow(screen);
-
-    const renderer = c.SDL_CreateRenderer(screen, -1, 0) orelse {
+    _ = c.SDL_SetHint(c.SDL_HINT_RENDER_VSYNC, "0");
+    _ = c.SDL_GL_SetSwapInterval(0);
+    const renderer = c.SDL_CreateRenderer(screen, 0, c.SDL_RENDERER_ACCELERATED) orelse {
         c.SDL_Log("Unable to init SDL renderer: %s", c.SDL_GetError());
         return error.SDLInitFailed;
     };
+    _ = c.SDL_RenderSetVSync(renderer, 0);
     defer c.SDL_DestroyRenderer(renderer);
-
     _ = c.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     _ = c.SDL_RenderClear(renderer);
     _ = c.SDL_RenderPresent(renderer);
-
     while (!quit) {
+        const start: f64 = @intToFloat(f64, c.SDL_GetPerformanceCounter());
+        if (chip8.DT > 0) chip8.DT -= 1;
+        if (chip8.ST > 0) chip8.ST -= 1;
+        for (0..15) |_| {
+            chip8.execute(chip8.fetch());
+        }
         input();
-        chip8.execute(chip8.fetch());
         draw(renderer);
+        _ = c.SDL_RenderPresent(renderer);
+        const end: f64 = @intToFloat(f64, c.SDL_GetPerformanceCounter());
+        const elapsed: f64 = (end - start) / @intToFloat(f64, c.SDL_GetPerformanceFrequency());
+        std.debug.print("current FPS: {d}\n", .{1.0 / elapsed});
     }
 }
