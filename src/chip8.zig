@@ -109,24 +109,29 @@ pub fn execute(op: u16) void {
                 0x8002 => v[x] &= v[y],
                 0x8003 => v[x] ^= v[y],
                 0x8004 => {
-                    v[0xf] = if (v[x] +% v[y] > 255) 1 else 0;
+                    const t: u2 = @addWithOverflow(v[x], v[y])[1];
                     v[x] +%= v[y];
+                    v[0xf] = t;
                 },
                 0x8005 => {
-                    v[0xf] = if (v[x] > v[y]) 1 else 0;
+                    const t: u2 = if (v[x] > v[y]) 1 else 0;
                     v[x] -%= v[y];
+                    v[0xf] = t;
                 },
                 0x8006 => {
-                    v[0xf] = v[x] & 0x01;
+                    const t: u8 = v[x] & 0x01;
                     v[x] >>= 1;
+                    v[0xf] = t;
                 },
                 0x8007 => {
-                    v[0xf] = if (v[y] > v[x]) 1 else 0;
+                    const t: u2 = if (v[y] > v[x]) 1 else 0;
                     v[x] = v[y] -% v[x];
+                    v[0xf] = t;
                 },
                 0x800e => {
-                    v[0xf] = v[x] & 0xa0;
+                    const t: u8 = v[x] & 0x80;
                     v[x] <<= 1;
+                    v[0xf] = if (t > 0) 1 else 0;
                 },
                 0x9000 => {
                     if (v[x] != v[y]) PC += 2;
