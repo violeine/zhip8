@@ -153,14 +153,14 @@ pub fn main() !void {
     while (!quit) {
         const start: f64 = @intToFloat(f64, c.SDL_GetPerformanceCounter());
         input();
-        if (chip8.DT > 0) chip8.DT -= 1;
-        if (chip8.ST > 0) chip8.ST -= 1;
-        for (0..9) |_| {
+        for (0..8) |_| {
             if (!chip8.waitKey) {
                 chip8.execute(chip8.fetch());
             }
         }
         draw(renderer);
+        if (chip8.DT > 0) chip8.DT -= 1;
+        if (chip8.ST > 0) chip8.ST -= 1;
         _ = c.SDL_RenderPresent(renderer);
         const end: f64 = @intToFloat(f64, c.SDL_GetPerformanceCounter());
         const elapsed: f64 = (end - start) / @intToFloat(f64, c.SDL_GetPerformanceFrequency());

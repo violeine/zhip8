@@ -88,21 +88,19 @@ pub fn execute(op: u16) void {
             0xB => PC = nnn + v[0x0],
             0xC => {},
             0xD => {
-                const vv = v[y] % 32;
-                const u = v[x] % 64;
                 for (0..n) |i| {
-                    const d = memory[I + i];
-                    for (bitMasks, 0..8) |mask, e| {
-                        const r = (vv + i);
-                        const c = (u + e);
-                        std.debug.print("r: {}, c: {}\n", .{ r, c });
-                        if ((r < 32) and (c < 64)) {
-                            const pos = (WIDTH * r + c);
-                            var value: u1 = if ((d & mask) > 0) 1 else 0;
-                            const t = frame[pos] ^ value;
-                            if (t == 0) v[0xf] = 1 else v[0xf] = 0;
-                            frame[pos] = t;
-                        }
+                    const spriteRow = memory[I + i];
+                    for (bitMasks, 0..8) |mask, j| {
+                        const col = (v[x] + j) % 64;
+                        const row = (v[y] + i) % 32;
+                        const pos = (WIDTH * row + col);
+                        var value: u1 = if ((spriteRow & mask) > 0) 1 else 0;
+                        value = if ((v[x] % 64) + j >= WIDTH or (v[y] % 32) + i >= HEIGHT) 0 else value;
+                        if (value == 0) continue;
+                        if (frame[pos] == 1) {
+                            v[0xf] = 1;
+                            frame[pos] = 0;
+                        } else frame[pos] = 1;
                     }
                 }
             },
