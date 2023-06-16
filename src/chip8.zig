@@ -10,6 +10,8 @@ var SP: u8 = 0;
 var stack = [_]u16{0} ** 16;
 pub var frame = [_]u1{0} ** WIDTH ** HEIGHT;
 pub var keys = [_]u1{0} ** 16;
+pub var keypressed: ?u8 = null;
+pub var waitKey = false;
 const WIDTH = 64;
 const HEIGHT = 32;
 
@@ -145,11 +147,23 @@ pub fn execute(op: u16) void {
                         if (keys[v[x]] != 1) PC += 2;
                     },
                     0xf007 => v[x] = DT,
-                    0xf00a => {},
+                    0xf00a => {
+                        if (keypressed == null) {
+                            PC -= 2;
+                            waitKey = true;
+                            std.debug.print("no key pressed \n", .{});
+                        } else {
+                            waitKey = false;
+                            v[x] = keypressed orelse unreachable;
+                            keypressed = null;
+                        }
+                    },
                     0xf015 => DT = v[x],
                     0xf018 => ST = v[x],
                     0xf01e => I += v[x],
-                    0xf029 => {},
+                    0xf029 => {
+                        PC -= 2;
+                    },
                     0xf033 => {
                         memory[I] = v[x] / 100;
                         var t = v[x] % 100;

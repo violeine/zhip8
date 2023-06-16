@@ -53,24 +53,73 @@ fn input() void {
             },
             c.SDL_KEYUP => {
                 switch (e.key.keysym.sym) {
-                    c.SDLK_1 => chip8.keys[0x1] = 0,
-                    c.SDLK_2 => chip8.keys[0x2] = 0,
-                    c.SDLK_3 => chip8.keys[0x3] = 0,
-                    c.SDLK_4 => chip8.keys[0xc] = 0,
-                    c.SDLK_q => chip8.keys[0x4] = 0,
-                    c.SDLK_w => chip8.keys[0x5] = 0,
-                    c.SDLK_e => chip8.keys[0x6] = 0,
-                    c.SDLK_r => chip8.keys[0xd] = 0,
-                    c.SDLK_a => chip8.keys[0x7] = 0,
-                    c.SDLK_s => chip8.keys[0x8] = 0,
-                    c.SDLK_d => chip8.keys[0x9] = 0,
-                    c.SDLK_f => chip8.keys[0xe] = 0,
-                    c.SDLK_z => chip8.keys[0xa] = 0,
-                    c.SDLK_x => chip8.keys[0x0] = 0,
-                    c.SDLK_c => chip8.keys[0xb] = 0,
-                    c.SDLK_v => chip8.keys[0xf] = 0,
+                    c.SDLK_1 => {
+                        chip8.keys[0x1] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x1;
+                    },
+                    c.SDLK_2 => {
+                        chip8.keys[0x2] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x2;
+                    },
+                    c.SDLK_3 => {
+                        chip8.keys[0x3] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x3;
+                    },
+                    c.SDLK_4 => {
+                        chip8.keys[0xc] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0xc;
+                    },
+                    c.SDLK_q => {
+                        chip8.keys[0x4] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x4;
+                    },
+                    c.SDLK_w => {
+                        chip8.keys[0x5] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x5;
+                    },
+                    c.SDLK_e => {
+                        chip8.keys[0x6] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x6;
+                    },
+                    c.SDLK_r => {
+                        chip8.keys[0xd] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0xd;
+                    },
+                    c.SDLK_a => {
+                        chip8.keys[0x7] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x7;
+                    },
+                    c.SDLK_s => {
+                        chip8.keys[0x8] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x8;
+                    },
+                    c.SDLK_d => {
+                        chip8.keys[0x9] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x9;
+                    },
+                    c.SDLK_f => {
+                        chip8.keys[0xe] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0xe;
+                    },
+                    c.SDLK_z => {
+                        chip8.keys[0xa] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0xa;
+                    },
+                    c.SDLK_x => {
+                        chip8.keys[0x0] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0x0;
+                    },
+                    c.SDLK_c => {
+                        chip8.keys[0xb] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0xb;
+                    },
+                    c.SDLK_v => {
+                        chip8.keys[0xf] = 0;
+                        if (chip8.waitKey) chip8.keypressed = 0xf;
+                    },
                     else => {},
                 }
+                chip8.waitKey = false;
             },
             else => {},
         }
@@ -103,12 +152,14 @@ pub fn main() !void {
     _ = c.SDL_RenderPresent(renderer);
     while (!quit) {
         const start: f64 = @intToFloat(f64, c.SDL_GetPerformanceCounter());
+        input();
         if (chip8.DT > 0) chip8.DT -= 1;
         if (chip8.ST > 0) chip8.ST -= 1;
-        for (0..15) |_| {
-            chip8.execute(chip8.fetch());
+        for (0..9) |_| {
+            if (!chip8.waitKey) {
+                chip8.execute(chip8.fetch());
+            }
         }
-        input();
         draw(renderer);
         _ = c.SDL_RenderPresent(renderer);
         const end: f64 = @intToFloat(f64, c.SDL_GetPerformanceCounter());
